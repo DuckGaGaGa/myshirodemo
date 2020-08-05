@@ -1,0 +1,4 @@
+springboot+shiro+thymeleaf   细粒度权限。
+建库语句在  src\main\resources\db
+
+连接mysql可能出现时区问题，将时区设置为serverTimezone=CTT(中国台湾)

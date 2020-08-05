@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.duckgagaga.shirodemo.myshirodemo.dao.SysPermissionMapper">
+  <resultMap id="BaseResultMap" type="com.duckgagaga.shirodemo.myshirodemo.entity.SysPermission">
+    <constructor>
+      <idArg column="id" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="permission_name" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="permission_description" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="url" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="perms" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="parent_id" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="type" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="status" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="create_time" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+      <arg column="update_time" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+    </constructor>
+  </resultMap>
+
+  <!--子权限返回Map-->
+  <resultMap id="ChildrenMap" type="com.duckgagaga.shirodemo.myshirodemo.entity.SysPermission">
+    <id property="id" column="id"></id>
+    <result column="permission_name"  property="permission_name"/>
+    <result column="permission_description" property="permission_description"/>
+    <result column="url" property="url"/>
+    <result column="perms"  property="perms"/>
+    <result column="parent_id"  property="parent_id"/>
+    <result column="type"  property="type"/>
+    <result column="status"  property="status"/>
+    <result column="create_time"  property="create_time"/>
+    <result column="update_time"  property="update_time"/>
+    <collection property="childrenPermission"
+                ofType="SysPermission"
+                select="selectChildrenPermission"
+                column="id"><!--需要查的字段-->
+    </collection>
+  </resultMap>
+
+  <!--通过父权限id查询子权限-->
+  <select id="selectChildrenPermission" parameterType="int" resultMap="ChildrenMap">
+    SELECT id, permission_name, permission_description, url, perms, parent_id, type, status,
+           create_time, update_time
+    FROM sys_permission
+    WHERE parent_id=#{parent_id}
+  </select>
+
+
+
+
+  <!--父权限返回Map-->
+  <resultMap id="ParentMap" type="com.duckgagaga.shirodemo.myshirodemo.entity.SysPermission">
+    <id property="id" column="id"></id>
+    <result column="permission_name"  property="permission_name"/>
+    <result column="permission_description" property="permission_description"/>
+    <result column="url" property="url"/>
+    <result column="perms"  property="perms"/>
+    <result column="parent_id"  property="parent_id"/>
+    <result column="type"  property="type"/>
+    <result column="status"  property="status"/>
+    <result column="create_time"  property="create_time"/>
+    <result column="update_time"  property="update_time"/>
+    <association property="parentsPermission"
+                 javaType="com.duckgagaga.shirodemo.myshirodemo.entity.SysPermission"
+                 select="selectParent"
+                 column="parent_id">
+
+    </association>
+    <!-- <collection property="parentsPermission"  ofType="SysPermission" select="selectParentsByPid" column="parent_id">
+
+     </collection>-->
+  </resultMap>
+
+
+  <!-- 通过子权限id查询父权限id值 -->
+  <select id="selectParent" parameterType="int" resultMap="ParentMap">
+    SELECT id, permission_name, permission_description, url, perms, parent_id, type, status,
+           create_time, update_time
+    FROM sys_permission
+    WHERE id=#{id}
+    <!-- 第一次传入子权限id值，查询到父权限id -->
+    <!-- 第二次通过association传入父权限id值，查询到父权限 -->
+  </select>
+
+
+
+
+  <!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  -->
+  <resultMap id="MyBaseMap" type="com.duckgagaga.shirodemo.myshirodemo.entity.SysPermission">
+    <id property="id" column="id"></id>
+    <result column="permission_name"  property="permission_name"/>
+    <result column="permission_description" property="permission_description"/>
+    <result column="url" property="url"/>
+    <result column="perms"  property="perms"/>
+    <result column="parent_id"  property="parent_id"/>
+    <result column="type"  property="type"/>
+    <result column="status"  property="status"/>
+    <result column="create_time"  property="create_time"/>
+    <result column="update_time"  property="update_time"/>
+    <association property="parentsPermission"
+                 javaType="com.duckgagaga.shirodemo.myshirodemo.entity.SysPermission"
+                 select="selectParent"
+                 column="parent_id">
+
+    </association>
+    <collection property="childrenPermission"
+                ofType="SysPermission"
+                select="selectChildrenPermission"
+                column="id"><!--需要查的字段-->
+    </collection>
+
+  </resultMap>
+
+  <!-- 查询一个 -->
+  <select id="selectOneTestById" parameterType="int" resultMap="MyBaseMap">
+    SELECT id, permission_name, permission_description, url, perms, parent_id, type, status,
+           create_time, update_time
+    FROM sys_permission
+    WHERE id=#{id}
+  </select>
+
+
+
+
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, permission_name, permission_description, url, perms, parent_id, type, status,
+    create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.duckgagaga.shirodemo.myshirodemo.entity.SysPermissionExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from sys_permission
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from sys_permission
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from sys_permission
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.duckgagaga.shirodemo.myshirodemo.entity.SysPermissionExample">
+    delete from sys_permission
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.duckgagaga.shirodemo.myshirodemo.entity.SysPermission">
+    insert into sys_permission (id, permission_name, permission_description, 
+      url, perms, parent_id, 
+      type, status, create_time, 
+      update_time)
+    values (#{id,jdbcType=INTEGER}, #{permission_name,jdbcType=VARCHAR}, #{permission_description,jdbcType=VARCHAR}, 
+      #{url,jdbcType=VARCHAR}, #{perms,jdbcType=VARCHAR}, #{parent_id,jdbcType=INTEGER}, 
+      #{type,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{create_time,jdbcType=TIMESTAMP}, 
+      #{update_time,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.duckgagaga.shirodemo.myshirodemo.entity.SysPermission">
+    insert into sys_permission
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="permission_name != null">
+        permission_name,
+      </if>
+      <if test="permission_description != null">
+        permission_description,
+      </if>
+      <if test="url != null">
+        url,
+      </if>
+      <if test="perms != null">
+        perms,
+      </if>
+      <if test="parent_id != null">
+        parent_id,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="create_time != null">
+        create_time,
+      </if>
+      <if test="update_time != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="permission_name != null">
+        #{permission_name,jdbcType=VARCHAR},
+      </if>
+      <if test="permission_description != null">
+        #{permission_description,jdbcType=VARCHAR},
+      </if>
+      <if test="url != null">
+        #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="perms != null">
+        #{perms,jdbcType=VARCHAR},
+      </if>
+      <if test="parent_id != null">
+        #{parent_id,jdbcType=INTEGER},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="create_time != null">
+        #{create_time,jdbcType=TIMESTAMP},
+      </if>
+      <if test="update_time != null">
+        #{update_time,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.duckgagaga.shirodemo.myshirodemo.entity.SysPermissionExample" resultType="java.lang.Long">
+    select count(*) from sys_permission
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update sys_permission
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=INTEGER},
+      </if>
+      <if test="record.permission_name != null">
+        permission_name = #{record.permission_name,jdbcType=VARCHAR},
+      </if>
+      <if test="record.permission_description != null">
+        permission_description = #{record.permission_description,jdbcType=VARCHAR},
+      </if>
+      <if test="record.url != null">
+        url = #{record.url,jdbcType=VARCHAR},
+      </if>
+      <if test="record.perms != null">
+        perms = #{record.perms,jdbcType=VARCHAR},
+      </if>
+      <if test="record.parent_id != null">
+        parent_id = #{record.parent_id,jdbcType=INTEGER},
+      </if>
+      <if test="record.type != null">
+        type = #{record.type,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null">
+        status = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.create_time != null">
+        create_time = #{record.create_time,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.update_time != null">
+        update_time = #{record.update_time,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update sys_permission
+    set id = #{record.id,jdbcType=INTEGER},
+      permission_name = #{record.permission_name,jdbcType=VARCHAR},
+      permission_description = #{record.permission_description,jdbcType=VARCHAR},
+      url = #{record.url,jdbcType=VARCHAR},
+      perms = #{record.perms,jdbcType=VARCHAR},
+      parent_id = #{record.parent_id,jdbcType=INTEGER},
+      type = #{record.type,jdbcType=INTEGER},
+      status = #{record.status,jdbcType=INTEGER},
+      create_time = #{record.create_time,jdbcType=TIMESTAMP},
+      update_time = #{record.update_time,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.duckgagaga.shirodemo.myshirodemo.entity.SysPermission">
+    update sys_permission
+    <set>
+      <if test="permission_name != null">
+        permission_name = #{permission_name,jdbcType=VARCHAR},
+      </if>
+      <if test="permission_description != null">
+        permission_description = #{permission_description,jdbcType=VARCHAR},
+      </if>
+      <if test="url != null">
+        url = #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="perms != null">
+        perms = #{perms,jdbcType=VARCHAR},
+      </if>
+      <if test="parent_id != null">
+        parent_id = #{parent_id,jdbcType=INTEGER},
+      </if>
+      <if test="type != null">
+        type = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="create_time != null">
+        create_time = #{create_time,jdbcType=TIMESTAMP},
+      </if>
+      <if test="update_time != null">
+        update_time = #{update_time,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.duckgagaga.shirodemo.myshirodemo.entity.SysPermission">
+    update sys_permission
+    set permission_name = #{permission_name,jdbcType=VARCHAR},
+      permission_description = #{permission_description,jdbcType=VARCHAR},
+      url = #{url,jdbcType=VARCHAR},
+      perms = #{perms,jdbcType=VARCHAR},
+      parent_id = #{parent_id,jdbcType=INTEGER},
+      type = #{type,jdbcType=INTEGER},
+      status = #{status,jdbcType=INTEGER},
+      create_time = #{create_time,jdbcType=TIMESTAMP},
+      update_time = #{update_time,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>
